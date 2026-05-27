@@ -1,0 +1,15 @@
+[Unit]
+Description=PiControl Raspberry Pi Backend
+After=bluetooth.target network-online.target dbus.service
+Wants=bluetooth.target network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/pi_backend
+ExecStart=/opt/pi_backend/venv/bin/python /opt/pi_backend/main.py
+Restart=always
+RestartSec=3
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

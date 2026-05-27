@@ -1,18 +1,32 @@
 # Pi Backend
 
-Python service for Raspberry Pi Zero W.
+This directory contains the Raspberry Pi Zero W backend service.
 
-## Features
+## Layout
 
-- BLE GATT command channel backed by BlueZ
-- SSH-friendly JSON command runner
-- Wi-Fi scan, Bluetooth scan, connectivity, and system metrics
-- Allowlisted JSON command routing
+- `install.sh`: idempotent installer for Raspberry Pi OS Lite
+- `main.py`: persistent backend entrypoint
+- `ble/server.py`: BlueZ GATT peripheral and notification response path
+- `core/command_router.py`: strict JSON command router
+- `core/system_tools.py`: CPU, RAM, storage, temperature, model, and connectivity helpers
+- `core/wifi_scanner.py`: Wi-Fi network scanning helpers
+- `core/bluetooth_scanner.py`: nearby Bluetooth device scanning helpers
+- `utils/json_utils.py`: JSON parsing and response helpers
+- `pi-backend.service`: systemd unit template
 
-## Run
+## Commands
+
+- `scan_wifi`
+- `scan_bluetooth`
+- `system_info`
+- `ping`
+
+## Installation
+
+Run the installer on Raspberry Pi OS Lite:
 
 ```bash
-python -m pi_monitor --help
+sudo bash install.sh
 ```
 
-For SSH usage, invoke the JSON command runner over a remote shell session and read the JSON response from stdout.
+The installer copies this backend to `/opt/pi_backend`, creates `/opt/pi_backend/venv`, installs dependencies only inside the venv, and registers `pi-backend.service` with systemd.
