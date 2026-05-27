@@ -8,6 +8,7 @@ VENV_DIR="$TARGET_DIR/venv"
 SERVICE_NAME="pi-backend.service"
 SERVICE_FILE="$SOURCE_DIR/$SERVICE_NAME"
 SYSTEMD_FILE="/etc/systemd/system/$SERVICE_NAME"
+VENV_BACKUP_DIR=""
 
 log() {
   printf '[pi-backend] %s\n' "$1"
@@ -44,6 +45,23 @@ sync_source() {
     "$SOURCE_DIR/" "$TARGET_DIR/"
 }
 
+backup_existing_venv() {
+  if [[ -d "$VENV_DIR" ]]; then
+    VENV_BACKUP_DIR="$(mktemp -d /tmp/pi_backend_venv_backup.XXXXXX)"
+    mv "$VENV_DIR" "$VENV_BACKUP_DIR/venv"
+  fi
+}
+
+restore_existing_venv() {
+  if [[ -n "$VENV_BACKUP_DIR" && -d "$VENV_BACKUP_DIR/venv" && ! -e "$VENV_DIR" ]]; then
+    mv "$VENV_BACKUP_DIR/venv" "$VENV_DIR"
+  fi
+  if [[ -n "$VENV_BACKUP_DIR" && -d "$VENV_BACKUP_DIR" ]]; then
+    rm -rf "$VENV_BACKUP_DIR"
+    VENV_BACKUP_DIR=""
+  fi
+}
+
 create_venv() {
   if [[ ! -d "$VENV_DIR" ]]; then
     python3 -m venv "$VENV_DIR"
@@ -75,10 +93,15 @@ install_service() {
 
 main() {
   require_root
+  trap 'if [[ -n "$VENV_BACKUP_DIR" && -d "$VENV_BACKUP_DIR/venv" && ! -e "$VENV_DIR" ]]; then mv "$VENV_BACKUP_DIR/venv" "$VENV_DIR"; fi; if [[ -n "$VENV_BACKUP_DIR" && -d "$VENV_BACKUP_DIR" ]]; then rm -rf "$VENV_BACKUP_DIR"; fi' EXIT
   log "Installing system dependencies"
   install_system_packages
+  log "Backing up existing virtual environment if present"
+  backup_existing_venv
   log "Copying backend source to $TARGET_DIR"
   sync_source
+  log "Restoring virtual environment if one existed"
+  restore_existing_venv
   log "Creating virtual environment and installing Python dependencies"
   create_venv
   log "Setting permissions"
