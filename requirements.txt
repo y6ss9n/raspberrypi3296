@@ -1,0 +1,3 @@
+psutil>=5.9.8
+bleak>=0.22.3
+dbus-next>=0.2.3
