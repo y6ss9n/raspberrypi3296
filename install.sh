@@ -38,6 +38,7 @@ sync_source() {
     --exclude '.git/' \
     --exclude '__pycache__/' \
     --exclude '.venv/' \
+    --exclude 'venv/' \
     --exclude 'android-app/' \
     --exclude 'src/' \
     "$SOURCE_DIR/" "$TARGET_DIR/"
@@ -46,6 +47,10 @@ sync_source() {
 create_venv() {
   if [[ ! -d "$VENV_DIR" ]]; then
     python3 -m venv "$VENV_DIR"
+  fi
+  if [[ ! -x "$VENV_DIR/bin/python" ]]; then
+    echo "Virtual environment is missing or corrupted at $VENV_DIR" >&2
+    exit 1
   fi
   "$VENV_DIR/bin/python" -m pip install --upgrade pip setuptools wheel
   "$VENV_DIR/bin/pip" install --no-cache-dir -r "$TARGET_DIR/requirements.txt"
